@@ -1,8 +1,8 @@
 package main
 
 import (
+	"example/go-api/controllers"
 	"example/go-api/initializers"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,12 +13,16 @@ func init() {
 }
 
 func main() {
-	fmt.Println("123")
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run() // listen and serve on 0.0.0.0:8080
+
+	movieGroup := r.Group("/Movies")
+	{
+		movieGroup.POST("/CreateMovie", controllers.CreateMovie)
+		movieGroup.GET("/GetMovies", controllers.GetMovies)
+		movieGroup.GET("/GetMovie/:id", controllers.GetMovie)
+		movieGroup.PUT("/UpdateMovie/:id", controllers.UpdateMovie)
+		movieGroup.DELETE("/DeleteMovie/:id", controllers.DeleteMovie)
+	}
+
+	r.Run()
 }
