@@ -14,7 +14,7 @@ func init() {
 
 func main() {
 	r := gin.Default()
-
+	defer CloseDB()
 	movieGroup := r.Group("/Movies")
 	{
 		movieGroup.POST("/CreateMovie", controllers.CreateMovie)
@@ -25,4 +25,9 @@ func main() {
 	}
 
 	r.Run()
+}
+
+func CloseDB() {
+	dbConn, _ := initializers.DB.DB()
+	dbConn.Close()
 }
