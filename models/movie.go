@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Movie struct {
 	gorm.Model
-	Title       string
-	ReleaseYear int
-	Rating      float32
+	Title       string `json: "title" binding: "required"`
+	ReleaseYear int    `json: "releaseYear" binding: "required"`
+	Plot        string `json: "plot"`
 }

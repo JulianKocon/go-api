@@ -41,7 +41,7 @@ func (movieRepostiory) UpdateMovie(movie models.Movie) models.Movie {
 	initializers.DB.Model(&movie).Updates(models.Movie{
 		Title:       movie.Title,
 		ReleaseYear: movie.ReleaseYear,
-		Rating:      movie.Rating,
+		Plot:        movie.Plot,
 	})
 	return movie
 }
