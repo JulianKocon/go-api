@@ -3,8 +3,11 @@ package main
 import (
 	"example/go-api/controllers"
 	"example/go-api/initializers"
+	"example/go-api/middlewares"
 	"example/go-api/repositories"
 	"example/go-api/services"
+	"io"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +15,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDb()
+	setupLogOutput()
 }
 
 var (
@@ -20,9 +24,17 @@ var (
 	movieController controllers.MovieController  = controllers.New(movieService)
 )
 
+func setupLogOutput() {
+	f, _ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+}
+
 func main() {
 	r := gin.Default()
 	defer CloseDB()
+
+	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
+
 	movieGroup := r.Group("/Movies")
 	{
 

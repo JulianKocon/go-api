@@ -1,3 +1,4 @@
 /.env
 /go-api.exe
 /go-api.exe~
+/gin.log
