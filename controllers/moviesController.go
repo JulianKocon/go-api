@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"example/go-api/initializers"
 	"example/go-api/models"
+	"example/go-api/services"
+	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,61 +15,80 @@ var Movie struct {
 	Rating      float32
 }
 
-func CreateMovie(c *gin.Context) {
-	c.Bind(&Movie)
-	movie := models.Movie{Title: Movie.Title, ReleaseYear: Movie.ReleaseYear, Rating: Movie.Rating}
-	result := initializers.DB.Create(&movie)
+type MovieController interface {
+	GetMovies(ctx *gin.Context)
+	CreateMovie(ctx *gin.Context)
+	GetMovie(ctx *gin.Context)
+	UpdateMovie(ctx *gin.Context)
+	DeleteMovie(ctx *gin.Context)
+}
 
-	if result.Error != nil {
-		c.Status(400)
+type controller struct {
+	service services.MovieService
+}
+
+func New(service services.MovieService) MovieController {
+	return &controller{
+		service: service,
+	}
+}
+
+func (c *controller) CreateMovie(ctx *gin.Context) {
+	var movie models.Movie
+	err := ctx.ShouldBindJSON(&movie)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(200, gin.H{
-		"movie": movie,
-	})
+	ctx.Param("id")
+	c.service.CreateMovie(movie)
+	ctx.JSON(http.StatusCreated, &movie)
 }
 
-func GetMovies(c *gin.Context) {
-	var movies []models.Movie
-	initializers.DB.Find(&movies)
-
-	c.JSON(200, gin.H{
-		"movies": movies,
-	})
+func (c *controller) GetMovies(ctx *gin.Context) {
+	movies := c.service.GetMovies()
+	ctx.JSON(http.StatusOK, &movies)
 }
 
-func GetMovie(c *gin.Context) {
-	id := c.Param("id")
+func (c *controller) GetMovie(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	movie := c.service.GetMovie(id)
+	ctx.JSON(http.StatusOK, &movie)
+}
+
+func (c *controller) UpdateMovie(ctx *gin.Context) {
 	var movie models.Movie
-	initializers.DB.First(&movie, id)
+	err := ctx.BindJSON(&movie)
 
-	c.JSON(200, gin.H{
-		"movie": movie,
-	})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	movie.ID = uint(id)
+	c.service.UpdateMovie(movie)
+	ctx.JSON(http.StatusOK, &movie)
 }
 
-func UpdateMovie(c *gin.Context) {
-	id := c.Param("id")
-	c.Bind(&Movie)
+func (c *controller) DeleteMovie(ctx *gin.Context) {
 	var movie models.Movie
-	initializers.DB.First(&movie, id)
+	id, err := strconv.Atoi(ctx.Param("id"))
 
-	initializers.DB.Model(&movie).Updates(models.Movie{
-		Title:       Movie.Title,
-		ReleaseYear: Movie.ReleaseYear,
-		Rating:      Movie.Rating,
-	})
-
-	c.JSON(200, gin.H{
-		"movie": movie,
-	})
-}
-
-func DeleteMovie(c *gin.Context) {
-	id := c.Param("id")
-
-	initializers.DB.Delete(&models.Movie{}, id)
-
-	c.Status(200)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	movie.ID = uint(id)
+	c.service.DeleteMovie(id)
+	ctx.JSON(http.StatusOK, &movie)
 }
