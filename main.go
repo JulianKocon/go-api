@@ -7,6 +7,7 @@ import (
 	"example/go-api/repositories"
 	"example/go-api/services"
 	"io"
+
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func init() {
 var (
 	movieRepostiory repositories.MovieRepostiory = repositories.NewMovieRepository()
 	movieService    services.MovieService        = services.New(movieRepostiory)
-	movieController controllers.MovieController  = controllers.New(movieService)
+	movieController controllers.MoviesController = controllers.NewMovieController(movieService)
 )
 
 func setupLogOutput() {
