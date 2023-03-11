@@ -6,8 +6,8 @@ import (
 )
 
 type ReviewService interface {
-	GetReview(id int) models.Review
-	GetAllMovieReviews(movieId int) []models.Review
+	GetReview(id int) (models.Review, error)
+	GetAllMovieReviews(movieId int) ([]models.Review, error)
 	AddReview(models.Review) models.Review
 	UpdateReview(models.Review) models.Review
 	DeleteReview(id int) models.Review
@@ -23,11 +23,11 @@ func NewReviewService(repo repositories.ReviewRepository) ReviewService {
 	}
 }
 
-func (service *reviewService) GetReview(id int) models.Review {
+func (service *reviewService) GetReview(id int) (models.Review, error) {
 	return service.reviewService.GetReview(id)
 }
 
-func (service *reviewService) GetAllMovieReviews(id int) []models.Review {
+func (service *reviewService) GetAllMovieReviews(id int) ([]models.Review, error) {
 	return service.reviewService.GetAllMovieReviews(id)
 }
 
