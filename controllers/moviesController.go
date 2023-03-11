@@ -21,6 +21,7 @@ type MoviesController interface {
 	GetMovie(ctx *gin.Context)
 	UpdateMovie(ctx *gin.Context)
 	DeleteMovie(ctx *gin.Context)
+	GetRating(ctx *gin.Context)
 }
 
 type moviesController struct {
@@ -76,6 +77,20 @@ func (c *moviesController) DeleteMovie(ctx *gin.Context) {
 	movie.ID = uint(id)
 	c.service.DeleteMovie(id)
 	ctx.JSON(http.StatusOK, &movie)
+}
+
+func (c *moviesController) GetRating(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	movieRating, err := c.service.GetMovieRating(id)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, &movieRating)
 }
 
 func ReturnIfError(ctx *gin.Context, err error) {

@@ -11,6 +11,7 @@ type MovieService interface {
 	GetMovie(id int) models.Movie
 	UpdateMovie(movie models.Movie) models.Movie
 	DeleteMovie(id int) models.Movie
+	GetMovieRating(id int) (float32, error)
 }
 
 type movieService struct {
@@ -21,6 +22,14 @@ func NewMovieService(repo repositories.MovieRepostiory) MovieService {
 	return &movieService{
 		movieRepostiory: repo,
 	}
+}
+
+func (service *movieService) GetMovieRating(movieId int) (float32, error) {
+	movieRating, err := service.movieRepostiory.GetMovieRating(movieId)
+	if err!= nil{ 
+		return 0, err
+	}
+	return movieRating, nil
 }
 
 func (service *movieService) CreateMovie(movie models.Movie) models.Movie {

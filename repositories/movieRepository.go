@@ -11,6 +11,7 @@ type MovieRepostiory interface {
 	UpdateMovie(models.Movie) models.Movie
 	DeleteMovie(id int) models.Movie
 	GetMovie(id int) models.Movie
+	GetMovieRating(movieId int) (float32, error)
 }
 
 type movieRepostiory struct {
@@ -18,6 +19,15 @@ type movieRepostiory struct {
 
 func NewMovieRepository() MovieRepostiory {
 	return movieRepostiory{}
+}
+
+func (movieRepostiory) GetMovieRating(movieId int) (float32, error) {
+	var result float32
+	row := initializers.DB.Table("reviews").Select("avg(rating)").Where("movie_id = ?", movieId).Row()
+	if err :=row.Scan(&result); err != nil{
+		return 0, err
+	}
+	return result, nil
 }
 
 func (movieRepostiory) CreateMovie(movie models.Movie) {
