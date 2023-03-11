@@ -21,8 +21,12 @@ func init() {
 
 var (
 	movieRepostiory repositories.MovieRepostiory = repositories.NewMovieRepository()
-	movieService    services.MovieService        = services.New(movieRepostiory)
+	movieService    services.MovieService        = services.NewMovieService(movieRepostiory)
 	movieController controllers.MoviesController = controllers.NewMovieController(movieService)
+
+	reviewsRepostiory repositories.ReviewRepository = repositories.NewReviewRepository()
+	reviewsService    services.ReviewService        = services.NewReviewService(reviewsRepostiory)
+	reviewsController controllers.ReviewsController = controllers.NewReviewController(reviewsService)
 )
 
 func setupLogOutput() {
@@ -39,13 +43,20 @@ func main() {
 	movieGroup := r.Group("/Movies")
 	{
 
-		movieGroup.POST("/CreateMovie", movieController.CreateMovie)
-		movieGroup.GET("/GetMovies", movieController.GetMovies)
-		movieGroup.GET("/GetMovie/:id", movieController.GetMovie)
-		movieGroup.PUT("/UpdateMovie/:id", movieController.UpdateMovie)
-		movieGroup.DELETE("/DeleteMovie/:id", movieController.DeleteMovie)
+		movieGroup.POST("/", movieController.CreateMovie)
+		movieGroup.GET("/", movieController.GetMovies)
+		movieGroup.GET("/:id", movieController.GetMovie)
+		movieGroup.PUT("/:id", movieController.UpdateMovie)
+		movieGroup.DELETE("/:id", movieController.DeleteMovie)
+		movieGroup.GET("/:id/reviews", reviewsController.GetReviews)
+		movieGroup.POST("/:id/reviews", reviewsController.AddReview)
 	}
-
+	reviewsGroup := r.Group("/Reviews")
+	{
+		reviewsGroup.GET("/:id", reviewsController.GetReviewById)
+		reviewsGroup.PUT("/:id", reviewsController.UpdateReview)
+		reviewsGroup.DELETE("/:id", reviewsController.DeleteReview)
+	}
 	r.Run()
 }
 

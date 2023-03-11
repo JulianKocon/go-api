@@ -17,7 +17,7 @@ type movieService struct {
 	movieRepostiory repositories.MovieRepostiory
 }
 
-func New(repo repositories.MovieRepostiory) MovieService {
+func NewMovieService(repo repositories.MovieRepostiory) MovieService {
 	return &movieService{
 		movieRepostiory: repo,
 	}
