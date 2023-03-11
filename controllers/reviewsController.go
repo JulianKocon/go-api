@@ -10,7 +10,7 @@ import (
 )
 
 type ReviewsController interface {
-	AddReview(ctx *gin.Context) 
+	AddReview(ctx *gin.Context)
 	GetReviews(ctx *gin.Context)
 	GetReviewById(ctx *gin.Context)
 	UpdateReview(ctx *gin.Context)
@@ -29,11 +29,17 @@ func NewReviewController(service services.ReviewService) ReviewsController {
 
 func (c *reviewsController) AddReview(ctx *gin.Context) {
 	var review models.Review
-	err := ctx.ShouldBindJSON(&review)
-	ReturnIfError(ctx, err)
+	if err := ctx.ShouldBindJSON(&review); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	movieId, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
-	review.MovieID = uint64(movieId);
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	review.MovieID = uint64(movieId)
 	ctx.Param("id")
 	c.service.AddReview(review)
 	ctx.JSON(http.StatusCreated, &review)
@@ -41,32 +47,66 @@ func (c *reviewsController) AddReview(ctx *gin.Context) {
 
 func (c *reviewsController) GetReviews(ctx *gin.Context) {
 	movieId, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
-	reviews := c.service.GetAllMovieReviews(movieId)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	reviews, err := c.service.GetAllMovieReviews(movieId)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, &reviews)
 }
 
 func (c *reviewsController) GetReviewById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
-	review := c.service.GetReview(id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	review, err := c.service.GetReview(id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, &review)
 }
 
 func (c *reviewsController) UpdateReview(ctx *gin.Context) {
-	var review models.Review
-	err := ctx.ShouldBindJSON(&review)
-	ReturnIfError(ctx, err)
 	id, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	review, err := c.service.GetReview(id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	if err := ctx.ShouldBindJSON(&review); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	review.ID = uint(id)
 	c.service.UpdateReview(review)
-	ctx.Status(http.StatusOK)
+	ctx.JSON(http.StatusOK, &review)
 }
 
 func (c *reviewsController) DeleteReview(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	c.service.DeleteReview(id)
 	ctx.Status(http.StatusOK)
 }
