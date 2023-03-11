@@ -8,9 +8,9 @@ import (
 type MovieService interface {
 	CreateMovie(models.Movie) models.Movie
 	GetMovies() []models.Movie
-	GetMovie(id int) models.Movie
+	GetMovie(id int) (models.Movie, error)
 	UpdateMovie(movie models.Movie) models.Movie
-	DeleteMovie(id int) models.Movie
+	DeleteMovie(id int)
 }
 
 type movieService struct {
@@ -32,7 +32,7 @@ func (service *movieService) GetMovies() []models.Movie {
 	return service.movieRepostiory.GetMovies()
 }
 
-func (service *movieService) GetMovie(id int) models.Movie {
+func (service *movieService) GetMovie(id int) (models.Movie, error) {
 	return service.movieRepostiory.GetMovie(id)
 }
 
@@ -40,6 +40,6 @@ func (service *movieService) UpdateMovie(movie models.Movie) models.Movie {
 	return service.movieRepostiory.UpdateMovie(movie)
 }
 
-func (service *movieService) DeleteMovie(id int) models.Movie {
-	return service.movieRepostiory.DeleteMovie(id)
+func (service *movieService) DeleteMovie(id int) {
+	service.movieRepostiory.DeleteMovie(id)
 }
