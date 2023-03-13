@@ -50,6 +50,7 @@ func main() {
 		movieGroup.DELETE("/:id", movieController.DeleteMovie)
 		movieGroup.GET("/:id/reviews", reviewsController.GetReviews)
 		movieGroup.POST("/:id/reviews", reviewsController.AddReview)
+		movieGroup.GET("/:id/rating", movieController.GetRating)
 	}
 	reviewsGroup := r.Group("/Reviews")
 	{
