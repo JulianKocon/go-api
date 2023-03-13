@@ -10,6 +10,8 @@ require (
 	gorm.io/gorm v1.24.6
 )
 
+require gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
@@ -45,6 +47,7 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/sqlite v1.4.4 // indirect
 )

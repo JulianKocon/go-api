@@ -17,20 +17,39 @@ func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDb()
 	setupLogOutput()
+	initializeDependencies()
+}
+
+func initializeDependencies(){
+	mailService 			= services.NewMailService(initializers.ExtractMailConfig())
+
+	movieRepostiory 		= repositories.NewMovieRepository()
+	movieService 			= services.NewMovieService(movieRepostiory)
+	movieController 		= controllers.NewMovieController(movieService)
+
+	reviewsRepostiory 		= repositories.NewReviewRepository()
+	reviewsService 			= services.NewReviewService(reviewsRepostiory)
+	reviewsController 		= controllers.NewReviewController(reviewsService)
+
+	identityRepostiory 		= repositories.NewIdentityRepository()
+	identityService 		= services.NewIdentityService(identityRepostiory, mailService)
+	identityController		= controllers.NewIdentityController(identityService)
 }
 
 var (
-	movieRepostiory repositories.MovieRepostiory = repositories.NewMovieRepository()
-	movieService    services.MovieService        = services.NewMovieService(movieRepostiory)
-	movieController controllers.MoviesController = controllers.NewMovieController(movieService)
+	mailService 		services.MailService 
 
-	reviewsRepostiory repositories.ReviewRepository = repositories.NewReviewRepository()
-	reviewsService    services.ReviewService        = services.NewReviewService(reviewsRepostiory)
-	reviewsController controllers.ReviewsController = controllers.NewReviewController(reviewsService)
+	movieRepostiory 	repositories.MovieRepostiory
+	movieService    	services.MovieService     
+	movieController 	controllers.MoviesController 
 
-	identityRepostiory repositories.IdentityRepostiory = repositories.NewIdentityRepository()
-	identityService    services.IdentityService        = services.NewIdentityService(identityRepostiory)
-	identityController controllers.IdentityController = controllers.NewIdentityController(identityService)
+	reviewsRepostiory 	repositories.ReviewRepository 
+	reviewsService    	services.ReviewService      
+	reviewsController 	controllers.ReviewsController 
+
+	identityRepostiory 	repositories.IdentityRepostiory
+	identityService    	services.IdentityService      
+	identityController 	controllers.IdentityController 
 )
 
 func setupLogOutput() {

@@ -32,34 +32,30 @@ type IdentityService interface {
 
 type identityService struct {
 	identityRepostiory repositories.IdentityRepostiory
+	mailService MailService
 }
 
-func NewIdentityService(repo repositories.IdentityRepostiory) IdentityService {
+func NewIdentityService(repo repositories.IdentityRepostiory, mailService MailService) IdentityService {
 	return &identityService{
 		identityRepostiory: repo,
+		mailService: mailService,
 	}
 }
 
 func (service identityService) RegisterUser(user models.User)error{
-	if(len(user.Email) < 5) {
-		return errors.New("Email invalid")
-	}
-	return service.identityRepostiory.Register(user)
+	if(len(user.Email) < 5) {return errors.New("Email invalid")}
+	if err := service.identityRepostiory.Register(user); err != nil{return err}
+	if err := service.mailService.SendMail("<h1>Hello!</h1>","Szalom!", user.Email); err!= nil{return err}
+	return nil
 }
 
 func (service identityService) GetToken(tokenRequest TokenRequest) (*string, error){
 	user, err := service.identityRepostiory.GetUserByEmail(tokenRequest.Email)
-	if err!= nil{
-		return nil, err
-	}
+	if err!= nil{return nil, err}
 	credentialError := user.CheckPassword(tokenRequest.Password)
-	if credentialError != nil {
-		return nil, credentialError
-	}
+	if credentialError != nil {return nil, credentialError}
 	tokenString, err:= service.GenerateJWT(user.Email, user.Username)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil {return nil, err}
 	return &tokenString, nil
 }
 
