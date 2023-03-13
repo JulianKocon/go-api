@@ -36,9 +36,10 @@ func NewMovieController(service services.MovieService) MoviesController {
 
 func (c *moviesController) CreateMovie(ctx *gin.Context) {
 	var movie models.Movie
-	err := ctx.ShouldBindJSON(&movie)
-	ReturnIfError(ctx, err)
-
+	if err := ctx.ShouldBindJSON(&movie); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 	c.service.CreateMovie(movie)
 	ctx.JSON(http.StatusCreated, &movie)
 }
@@ -50,19 +51,36 @@ func (c *moviesController) GetMovies(ctx *gin.Context) {
 
 func (c *moviesController) GetMovie(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
-	movie := c.service.GetMovie(id)
+	movie, err := c.service.GetMovie(id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
 	ctx.JSON(http.StatusOK, &movie)
 }
 
 func (c *moviesController) UpdateMovie(ctx *gin.Context) {
-	var movie models.Movie
-	err := ctx.BindJSON(&movie)
-	ReturnIfError(ctx, err)
-
 	id, err := strconv.Atoi(ctx.Param("id"))
-	ReturnIfError(ctx, err)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	movie, err := c.service.GetMovie(id)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	if err := ctx.BindJSON(&movie); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	movie.ID = uint(id)
 	c.service.UpdateMovie(movie)
@@ -72,8 +90,11 @@ func (c *moviesController) UpdateMovie(ctx *gin.Context) {
 func (c *moviesController) DeleteMovie(ctx *gin.Context) {
 	var movie models.Movie
 	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
-	ReturnIfError(ctx, err)
 	movie.ID = uint(id)
 	c.service.DeleteMovie(id)
 	ctx.JSON(http.StatusOK, &movie)

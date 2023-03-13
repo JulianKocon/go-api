@@ -9,9 +9,9 @@ type MovieRepostiory interface {
 	CreateMovie(models.Movie)
 	GetMovies() []models.Movie
 	UpdateMovie(models.Movie) models.Movie
-	DeleteMovie(id int) models.Movie
-	GetMovie(id int) models.Movie
 	GetMovieRating(movieId int) (float32, error)
+	DeleteMovie(id int)
+	GetMovie(id int) (models.Movie, error)
 }
 
 type movieRepostiory struct {
@@ -40,14 +40,15 @@ func (movieRepostiory) GetMovies() []models.Movie {
 	return movies
 }
 
-func (movieRepostiory) GetMovie(id int) models.Movie {
+func (movieRepostiory) GetMovie(id int) (models.Movie, error) {
 	var movie models.Movie
-	initializers.DB.First(&movie, id)
-	return movie
+	if err := initializers.DB.First(&movie, id).Error; err != nil {
+		return movie, err
+	}
+	return movie, nil
 }
 
 func (movieRepostiory) UpdateMovie(movie models.Movie) models.Movie {
-	initializers.DB.First(&movie, movie.ID)
 	initializers.DB.Model(&movie).Updates(models.Movie{
 		Title:       movie.Title,
 		ReleaseYear: movie.ReleaseYear,
@@ -56,8 +57,6 @@ func (movieRepostiory) UpdateMovie(movie models.Movie) models.Movie {
 	return movie
 }
 
-func (movieRepostiory) DeleteMovie(id int) models.Movie {
-	var movie models.Movie
+func (movieRepostiory) DeleteMovie(id int) {
 	initializers.DB.Delete(&models.Movie{}, id)
-	return movie
 }
