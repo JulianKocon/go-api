@@ -27,6 +27,8 @@ var (
 	reviewsRepostiory repositories.ReviewRepository = repositories.NewReviewRepository()
 	reviewsService    services.ReviewService        = services.NewReviewService(reviewsRepostiory)
 	reviewsController controllers.ReviewsController = controllers.NewReviewController(reviewsService)
+
+	apiCallCounter *middlewares.ApiCallCounter = new(middlewares.ApiCallCounter)
 )
 
 func setupLogOutput() {
@@ -38,7 +40,7 @@ func main() {
 	r := gin.Default()
 	defer CloseDB()
 
-	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
+	r.Use(apiCallCounter.Register(), gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
 
 	movieGroup := r.Group("/Movies")
 	{
@@ -57,6 +59,8 @@ func main() {
 		reviewsGroup.PUT("/:id", reviewsController.UpdateReview)
 		reviewsGroup.DELETE("/:id", reviewsController.DeleteReview)
 	}
+
+	go apiCallCounter.Start()
 	r.Run()
 }
 
