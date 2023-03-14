@@ -11,5 +11,5 @@ func init() {
 }
 
 func main() {
-	initializers.DB.AutoMigrate(&models.Movie{}, &models.Review{}, &model.ApiCall{})
+	initializers.DB.AutoMigrate(&models.Movie{}, &models.Review{}, &models.ApiCall{})
 }
