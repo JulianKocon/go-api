@@ -17,16 +17,39 @@ func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDb()
 	setupLogOutput()
+	initializeDependencies()
+}
+
+func initializeDependencies(){
+	mailService 			= services.NewMailService(initializers.ExtractMailConfig())
+
+	movieRepostiory 		= repositories.NewMovieRepository()
+	movieService 			= services.NewMovieService(movieRepostiory)
+	movieController 		= controllers.NewMovieController(movieService)
+
+	reviewsRepostiory 		= repositories.NewReviewRepository()
+	reviewsService 			= services.NewReviewService(reviewsRepostiory)
+	reviewsController 		= controllers.NewReviewController(reviewsService)
+
+	identityRepostiory 		= repositories.NewIdentityRepository()
+	identityService 		= services.NewIdentityService(identityRepostiory, mailService)
+	identityController		= controllers.NewIdentityController(identityService)
 }
 
 var (
-	movieRepostiory repositories.MovieRepostiory = repositories.NewMovieRepository()
-	movieService    services.MovieService        = services.NewMovieService(movieRepostiory)
-	movieController controllers.MoviesController = controllers.NewMovieController(movieService)
+	mailService 		services.MailService 
 
-	reviewsRepostiory repositories.ReviewRepository = repositories.NewReviewRepository()
-	reviewsService    services.ReviewService        = services.NewReviewService(reviewsRepostiory)
-	reviewsController controllers.ReviewsController = controllers.NewReviewController(reviewsService)
+	movieRepostiory 	repositories.MovieRepostiory
+	movieService    	services.MovieService     
+	movieController 	controllers.MoviesController 
+
+	reviewsRepostiory 	repositories.ReviewRepository 
+	reviewsService    	services.ReviewService      
+	reviewsController 	controllers.ReviewsController 
+
+	identityRepostiory 	repositories.IdentityRepostiory
+	identityService    	services.IdentityService      
+	identityController 	controllers.IdentityController 
 )
 
 func setupLogOutput() {
@@ -38,9 +61,9 @@ func main() {
 	r := gin.Default()
 	defer CloseDB()
 
-	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
+	r.Use(gin.Recovery(), middlewares.Logger())
 
-	movieGroup := r.Group("/Movies")
+	movieGroup := r.Group("/Movies").Use(middlewares.Auth())
 	{
 
 		movieGroup.POST("/", movieController.CreateMovie)
@@ -57,6 +80,11 @@ func main() {
 		reviewsGroup.GET("/:id", reviewsController.GetReviewById)
 		reviewsGroup.PUT("/:id", reviewsController.UpdateReview)
 		reviewsGroup.DELETE("/:id", reviewsController.DeleteReview)
+	}
+	identityGroup := r.Group("/Identity")
+	{
+		identityGroup.POST("/token", identityController.GenerateToken)
+		identityGroup.POST("/register", identityController.RegisterUser)
 	}
 	r.Run()
 }
