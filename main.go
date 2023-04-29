@@ -27,6 +27,12 @@ var (
 	reviewsRepostiory repositories.ReviewRepository = repositories.NewReviewRepository()
 	reviewsService    services.ReviewService        = services.NewReviewService(reviewsRepostiory)
 	reviewsController controllers.ReviewsController = controllers.NewReviewController(reviewsService)
+
+	identityRepostiory repositories.IdentityRepostiory = repositories.NewIdentityRepository()
+	identityService    services.IdentityService        = services.NewIdentityService(identityRepostiory)
+	identityController controllers.IdentityController = controllers.NewIdentityController(identityService)
+  
+	apiCallCounter *middlewares.ApiCallCounter = new(middlewares.ApiCallCounter)
 )
 
 func setupLogOutput() {
@@ -38,9 +44,9 @@ func main() {
 	r := gin.Default()
 	defer CloseDB()
 
-	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
+	r.Use(apiCallCounter.Register(), gin.Recovery(), middlewares.Logger(), middlewares.BasicAuth())
 
-	movieGroup := r.Group("/Movies")
+	movieGroup := r.Group("/Movies").Use(middlewares.Auth())
 	{
 
 		movieGroup.POST("/", movieController.CreateMovie)
@@ -50,6 +56,7 @@ func main() {
 		movieGroup.DELETE("/:id", movieController.DeleteMovie)
 		movieGroup.GET("/:id/reviews", reviewsController.GetReviews)
 		movieGroup.POST("/:id/reviews", reviewsController.AddReview)
+		movieGroup.GET("/:id/rating", movieController.GetRating)
 	}
 	reviewsGroup := r.Group("/Reviews")
 	{
@@ -57,6 +64,14 @@ func main() {
 		reviewsGroup.PUT("/:id", reviewsController.UpdateReview)
 		reviewsGroup.DELETE("/:id", reviewsController.DeleteReview)
 	}
+
+	identityGroup := r.Group("/Identity")
+	{
+		identityGroup.POST("/token", identityController.GenerateToken)
+		identityGroup.POST("/register", identityController.RegisterUser)
+	}
+  
+	go apiCallCounter.Start()
 	r.Run()
 }
 
